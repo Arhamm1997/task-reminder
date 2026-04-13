@@ -1,0 +1,52 @@
+---
+
+## WHATSAPP REMINDERS (via CallMeBot API)
+
+### New Page: /settings
+- User enters their WhatsApp number (Pakistan format: +923XXXXXXXXX)
+- User enters their CallMeBot API Key
+- Both saved in localStorage
+- Test button: "Send Test Message"
+
+### API Route: /api/send-whatsapp
+Create a Next.js API route:
+
+// app/api/send-whatsapp/route.ts
+export async function POST(req: Request) {
+  const { phone, apikey, message } = await req.json()
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(message)}&apikey=${apikey}`
+  const res = await fetch(url)
+  return Response.json({ ok: res.ok })
+}
+
+### Reminder Checker (client-side, useReminders.ts)
+- On app load, start an interval that runs every 60 seconds
+- Check all tasks where reminderTime exists and completed = false
+- If current time matches reminderTime (within 1 minute window):
+  - Call /api/send-whatsapp with message:
+    "🔔 FocusDesk Reminder!\n\nTask: {task.title}\nPriority: {task.priority}\nDue: {task.dueDate}\n\nOpen app to mark complete."
+  - Mark reminder as "sent" (add reminderSent: boolean to Task model) so it doesn't repeat
+  - Also show browser notification simultaneously
+
+### Task Form — Reminder Field
+- Add "Remind me at" time picker in TaskForm
+- Show WhatsApp icon next to field with tooltip: "You'll get a WhatsApp message"
+- If WhatsApp not configured, show: "Setup WhatsApp in Settings first" with link
+
+### Settings Page (/settings)
+- WhatsApp Number input (with Pakistan +92 prefix auto-added)
+- API Key input (password type, show/hide toggle)
+- Save button with success toast
+- "Send Test Message" button → sends "✅ FocusDesk connected! Reminders are active."
+- Clear data button (reset all tasks + notes)
+
+---
+
+## UPDATED TASK DATA MODEL
+Add these fields:
+{
+  ...existing fields,
+  reminderTime?: string,     // "HH:MM" format
+  reminderDate?: string,     // specific date or "same-as-due"
+  reminderSent: boolean      // prevents duplicate messages
+}

@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { X } from 'lucide-react';
+import { X, MessageCircle, AlertCircle } from 'lucide-react';
+import { Link } from 'wouter';
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
@@ -14,6 +14,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useTaskStore } from '@/store/taskStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { useToast } from '@/hooks/use-toast';
 import type { Task } from '@/types';
 import { motion } from 'framer-motion';
@@ -25,6 +26,7 @@ const schema = z.object({
   category: z.enum(['work', 'personal', 'shopping', 'other']),
   dueDate: z.string().optional(),
   reminderTime: z.string().optional(),
+  reminderDate: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -36,6 +38,7 @@ interface TaskFormProps {
 
 export function TaskForm({ task, onClose }: TaskFormProps) {
   const { addTask, updateTask } = useTaskStore();
+  const isWhatsAppConfigured = useSettingsStore(s => s.isConfigured)();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -47,15 +50,19 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
       category: task?.category ?? 'work',
       dueDate: task?.dueDate ?? '',
       reminderTime: task?.reminderTime ?? '',
+      reminderDate: task?.reminderDate ?? '',
     },
   });
 
   const onSubmit = (data: FormData) => {
     if (task) {
-      updateTask(task.id, data);
+      updateTask(task.id, {
+        ...data,
+        reminderSent: data.reminderTime !== task.reminderTime ? false : task.reminderSent,
+      });
       toast({ title: 'Task updated' });
     } else {
-      addTask({ ...data, completed: false });
+      addTask({ ...data, completed: false, reminderSent: false });
       toast({ title: 'Task created' });
     }
     onClose();
@@ -69,8 +76,8 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+      <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="font-semibold text-base">{task ? 'Edit Task' : 'New Task'}</h2>
           <button
             data-testid="close-task-form"
@@ -183,14 +190,14 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
 
               <FormField
                 control={form.control}
-                name="reminderTime"
+                name="reminderDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reminder</FormLabel>
+                    <FormLabel>Reminder Date</FormLabel>
                     <FormControl>
                       <Input
-                        data-testid="task-reminder-input"
-                        type="datetime-local"
+                        data-testid="task-reminder-date-input"
+                        type="date"
                         {...field}
                       />
                     </FormControl>
@@ -198,6 +205,42 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                 )}
               />
             </div>
+
+            {/* Reminder time with WhatsApp indicator */}
+            <FormField
+              control={form.control}
+              name="reminderTime"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    Remind me at
+                    {isWhatsAppConfigured && (
+                      <span className="flex items-center gap-1 text-xs text-green-500 font-normal">
+                        <MessageCircle className="h-3 w-3" />
+                        WhatsApp reminder active
+                      </span>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="task-reminder-input"
+                      type="datetime-local"
+                      {...field}
+                    />
+                  </FormControl>
+                  {!isWhatsAppConfigured && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <AlertCircle className="h-3 w-3 text-yellow-500 flex-shrink-0" />
+                      Setup WhatsApp in{' '}
+                      <Link href="/settings" onClick={onClose} className="text-primary underline">
+                        Settings
+                      </Link>{' '}
+                      to get WhatsApp reminders
+                    </p>
+                  )}
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end gap-2 pt-1">
               <Button

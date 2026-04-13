@@ -11,6 +11,7 @@ import { useTabTitle } from "@/hooks/useTabTitle";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Notes from "@/pages/Notes";
+import Settings from "@/pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/notes" component={Notes} />
+        <Route path="/settings" component={Settings} />
         <Route>
           <div className="flex items-center justify-center h-full text-muted-foreground">
             Page not found

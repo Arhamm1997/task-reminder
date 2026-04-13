@@ -11,6 +11,8 @@ export interface Task {
   category: Category;
   dueDate?: string;
   reminderTime?: string;
+  reminderDate?: string;
+  reminderSent: boolean;
   completed: boolean;
   completedAt?: string;
   createdAt: string;
@@ -25,4 +27,9 @@ export interface Note {
   pinned: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface WhatsAppSettings {
+  phone: string;
+  apikey: string;
 }

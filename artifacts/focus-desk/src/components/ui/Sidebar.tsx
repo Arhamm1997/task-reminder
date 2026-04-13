@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { LayoutDashboard, CheckSquare, StickyNote, Moon, Sun, Brain, Menu, X } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, StickyNote, Moon, Sun, Brain, Menu, X, Settings } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { href: '/notes', icon: StickyNote, label: 'Notes' },
+  { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 function NavLink({ href, icon: Icon, label, onClick }: { href: string; icon: React.ComponentType<{className?: string}>; label: string; onClick?: () => void }) {

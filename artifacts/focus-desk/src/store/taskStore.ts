@@ -14,6 +14,7 @@ const SEED_TASKS: Task[] = [
     category: 'work',
     dueDate: format(new Date(), 'yyyy-MM-dd'),
     completed: false,
+    reminderSent: false,
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     order: 0,
   },
@@ -25,6 +26,7 @@ const SEED_TASKS: Task[] = [
     category: 'shopping',
     dueDate: format(new Date(Date.now() + 86400000), 'yyyy-MM-dd'),
     completed: false,
+    reminderSent: false,
     createdAt: new Date(Date.now() - 3600000).toISOString(),
     order: 1,
   },
@@ -36,6 +38,7 @@ const SEED_TASKS: Task[] = [
     category: 'personal',
     dueDate: format(new Date(Date.now() + 604800000), 'yyyy-MM-dd'),
     completed: false,
+    reminderSent: false,
     createdAt: new Date().toISOString(),
     order: 2,
   },
@@ -49,6 +52,7 @@ interface TaskState {
   deleteTask: (id: string) => void;
   toggleComplete: (id: string) => void;
   reorderTasks: (tasks: Task[]) => void;
+  markReminderSent: (id: string) => void;
   getFilteredTasks: (filter: TaskFilter, search: string) => Task[];
   getOverdueCount: () => number;
   archiveOldCompleted: () => void;
@@ -65,6 +69,7 @@ export const useTaskStore = create<TaskState>()(
         const maxOrder = tasks.length > 0 ? Math.max(...tasks.map(t => t.order)) : -1;
         const newTask: Task = {
           ...taskData,
+          reminderSent: taskData.reminderSent ?? false,
           id: generateId(),
           createdAt: new Date().toISOString(),
           order: maxOrder + 1,
@@ -92,6 +97,14 @@ export const useTaskStore = create<TaskState>()(
               completedAt: !t.completed ? new Date().toISOString() : undefined,
             };
           }),
+        }));
+      },
+
+      markReminderSent: (id) => {
+        set(state => ({
+          tasks: state.tasks.map(t =>
+            t.id === id ? { ...t, reminderSent: true } : t
+          ),
         }));
       },
 
