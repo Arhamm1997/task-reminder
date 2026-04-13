@@ -1,0 +1,134 @@
+Build a production-ready Next.js 14 app called "FocusDesk" — a smart task + sticky notes manager. 
+The user forgets tasks and loses notes, so this app should feel like a second brain.
+
+---
+
+## TECH STACK
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Framer Motion (animations)
+- Zustand (state management)
+- localStorage persistence (no backend needed)
+- date-fns (date handling)
+- lucide-react (icons)
+
+---
+
+## FEATURES TO BUILD
+
+### 1. Dashboard (/)
+- Today's date + greeting (Good Morning / Afternoon / Evening)
+- Quick stats: Total tasks, Due today, Completed today, Pending notes
+- Floating "+" button to quickly add task or note
+- Keyboard shortcut: Ctrl+K for quick add modal
+
+### 2. Tasks (/tasks)
+- Add task with: Title, Description, Priority (High/Medium/Low), Due Date, Category (Work/Personal/Shopping/Other)
+- Tasks list with filters: All / Today / Upcoming / Completed / Overdue
+- Drag-to-reorder (using @dnd-kit/core)
+- Mark complete with satisfying checkbox animation
+- Auto-sort: Overdue tasks float to top in red
+- Delete with undo toast (5 second window)
+- Search tasks in real-time
+
+### 3. Notes (/notes)
+- Sticky note grid layout (masonry)
+- Add note: Title (optional) + body text + color tag (6 color options)
+- Notes are pinnable (pinned notes stay on top)
+- Double-click to edit inline
+- Search notes in real-time
+- Note auto-saves on blur
+
+### 4. Reminders / Notifications
+- Set reminder time on any task
+- Browser Notification API — show native notification at reminder time
+- Badge count on tab title for overdue tasks
+
+### 5. Smart Features
+- "Focus Mode": hides everything except Today's tasks (distraction-free)
+- Auto-archive completed tasks after 7 days
+- Quick capture: a persistent input bar at top of every page
+- Empty state illustrations (SVG) with motivational messages
+
+---
+
+## UI/UX DIRECTION
+- Theme: Dark mode by default, with light mode toggle
+- Aesthetic: Clean editorial — think Notion meets Linear. Sharp edges, refined typography.
+- Font: "Geist" for UI + "Lora" for note body text (Google Fonts)
+- Color palette: Deep charcoal background (#0F0F0F), off-white text (#F5F5F0), electric accent (#4AFF91)
+- Sidebar navigation: collapsible on mobile, always visible on desktop
+- Smooth page transitions with Framer Motion
+- Micro-animations on every interaction: task complete, note pin, delete
+- Mobile responsive (works perfectly on phone)
+- Toast notifications (bottom-right) for all actions
+
+---
+
+## FILE STRUCTURE
+/app
+  /dashboard → page.tsx
+  /tasks → page.tsx
+  /notes → page.tsx
+  /layout.tsx (sidebar + providers)
+/components
+  /tasks → TaskCard, TaskForm, TaskList, TaskFilters
+  /notes → NoteCard, NoteForm, NoteGrid
+  /ui → Button, Modal, Toast, Badge, SearchBar, Sidebar
+/store
+  → taskStore.ts (Zustand)
+  → noteStore.ts (Zustand)
+/hooks
+  → useReminders.ts
+  → useLocalStorage.ts
+/lib
+  → utils.ts
+  → constants.ts
+
+---
+
+## DATA MODELS
+
+Task:
+{
+  id: string,
+  title: string,
+  description?: string,
+  priority: 'high' | 'medium' | 'low',
+  category: 'work' | 'personal' | 'shopping' | 'other',
+  dueDate?: string,
+  reminderTime?: string,
+  completed: boolean,
+  completedAt?: string,
+  createdAt: string,
+  order: number
+}
+
+Note:
+{
+  id: string,
+  title?: string,
+  body: string,
+  color: 'yellow' | 'green' | 'blue' | 'pink' | 'purple' | 'white',
+  pinned: boolean,
+  createdAt: string,
+  updatedAt: string
+}
+
+---
+
+## SEED DATA
+On first load, create 3 sample tasks and 2 sample notes so the app doesn't feel empty.
+
+---
+
+## POLISH REQUIREMENTS
+- All data persists in localStorage — nothing lost on refresh
+- No broken states: empty states for all lists with helpful CTAs
+- Accessible: proper aria labels, keyboard navigation
+- Error boundaries on all pages
+- Loading skeletons while hydrating from localStorage
+- PWA ready: add manifest.json and meta tags so it can be installed on phone
+
+Build it completely. Start with layout and routing, then features one by one.
