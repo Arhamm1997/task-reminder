@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Focus } from 'lucide-react';
+import { Plus, Search, Focus, FileText } from 'lucide-react';
 import { TaskList } from '@/components/tasks/TaskList';
 import { TaskFilters } from '@/components/tasks/TaskFilters';
 import { TaskForm } from '@/components/tasks/TaskForm';
@@ -9,12 +9,14 @@ import { isDueToday, isOverdue, isUpcoming } from '@/lib/utils';
 import type { TaskFilter } from '@/types';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function Tasks() {
   const [filter, setFilter] = useState<TaskFilter>('all');
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [showWithNotesOnly, setShowWithNotesOnly] = useState(false);
   const tasks = useTaskStore(s => s.tasks);
 
   const counts: Record<TaskFilter, number> = {
@@ -92,7 +94,20 @@ export default function Tasks() {
           </div>
 
           {/* Filters */}
-          <TaskFilters active={filter} onChange={setFilter} counts={counts} />
+          <div className="space-y-3">
+            <TaskFilters active={filter} onChange={setFilter} counts={counts} />
+
+            {/* With notes filter */}
+            <Button
+              variant={showWithNotesOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowWithNotesOnly(!showWithNotesOnly)}
+              className="w-full text-xs"
+            >
+              <FileText className="h-3.5 w-3.5 mr-2" />
+              {showWithNotesOnly ? 'Showing tasks with notes' : 'Show tasks with notes'}
+            </Button>
+          </div>
         </motion.div>
       )}
 
@@ -106,7 +121,7 @@ export default function Tasks() {
         </motion.div>
       )}
 
-      <TaskList filter={focusMode ? 'today' : filter} search={search} />
+      <TaskList filter={focusMode ? 'today' : filter} search={search} withNotesOnly={showWithNotesOnly} />
 
       <motion.button
         whileHover={{ scale: 1.05 }}

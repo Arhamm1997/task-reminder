@@ -24,15 +24,21 @@ import { CheckSquare } from 'lucide-react';
 interface TaskListProps {
   filter: TaskFilter;
   search: string;
+  withNotesOnly?: boolean;
 }
 
-export function TaskList({ filter, search }: TaskListProps) {
+export function TaskList({ filter, search, withNotesOnly = false }: TaskListProps) {
   const { getFilteredTasks, reorderTasks, deleteTask } = useTaskStore();
   const { toast } = useToast();
   const [deletedTask, setDeletedTask] = useState<Task | null>(null);
   const [deleteTimer, setDeleteTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
-  const tasks = getFilteredTasks(filter, search);
+  let tasks = getFilteredTasks(filter, search);
+
+  // Filter tasks with notes only if enabled
+  if (withNotesOnly) {
+    tasks = tasks.filter(t => t.noteIds && t.noteIds.length > 0);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),

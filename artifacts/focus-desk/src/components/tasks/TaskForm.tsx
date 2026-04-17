@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { X, MessageCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { X, MessageCircle, AlertCircle, Trash2, Plus } from 'lucide-react';
 import { Link } from 'wouter';
 import { useState } from 'react';
 import {
@@ -40,11 +40,14 @@ interface TaskFormProps {
 
 export function TaskForm({ task, onClose }: TaskFormProps) {
   const { addTask, updateTask } = useTaskStore();
+  const { addNote } = useNoteStore();
   const notes = useNoteStore(s => s.notes);
   const isWhatsAppConfigured = useSettingsStore(s => s.isConfigured)();
   const { toast } = useToast();
   const [attachedNoteIds, setAttachedNoteIds] = useState<string[]>(task?.noteIds ?? []);
   const [selectedNoteId, setSelectedNoteId] = useState('');
+  const [showCreateNote, setShowCreateNote] = useState(false);
+  const [newNoteBody, setNewNoteBody] = useState('');
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -83,6 +86,25 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
 
   const detachNote = (noteId: string) => {
     setAttachedNoteIds(attachedNoteIds.filter(id => id !== noteId));
+  };
+
+  const createAndAttachNote = () => {
+    if (newNoteBody.trim()) {
+      addNote({
+        title: undefined,
+        body: newNoteBody,
+        color: 'yellow',
+        pinned: false,
+      });
+      // Get the newly created note (it's the last one in the array after addNote)
+      const lastNote = notes[notes.length - 1];
+      if (lastNote && !attachedNoteIds.includes(lastNote.id)) {
+        setAttachedNoteIds([...attachedNoteIds, lastNote.id]);
+      }
+      setNewNoteBody('');
+      setShowCreateNote(false);
+      toast({ title: 'Note created and attached' });
+    }
   };
 
   const attachedNotes = notes.filter(n => attachedNoteIds.includes(n.id));
@@ -291,7 +313,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
 
               {/* Attach note dropdown */}
               {availableNotes.length > 0 && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-3">
                   <Select value={selectedNoteId} onValueChange={setSelectedNoteId}>
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Select a note to attach..." />
@@ -315,7 +337,53 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                 </div>
               )}
 
-              {notes.length === 0 && (
+              {/* Quick note creation */}
+              {!showCreateNote ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateNote(true)}
+                  className="w-full text-xs h-8 mb-2"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Create new note
+                </Button>
+              ) : (
+                <div className="space-y-2 mb-2 p-2 rounded-lg bg-muted/30">
+                  <Textarea
+                    placeholder="Quick note..."
+                    value={newNoteBody}
+                    onChange={(e) => setNewNoteBody(e.target.value)}
+                    className="text-xs h-16 resize-none"
+                  />
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      onClick={createAndAttachNote}
+                      disabled={!newNoteBody.trim()}
+                      className="h-6 text-xs px-2 flex-1"
+                      size="sm"
+                    >
+                      Create & Attach
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setShowCreateNote(false);
+                        setNewNoteBody('');
+                      }}
+                      className="h-6 text-xs px-2"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {notes.length === 0 && !showCreateNote && (
                 <p className="text-xs text-muted-foreground">No notes created yet</p>
               )}
             </div>

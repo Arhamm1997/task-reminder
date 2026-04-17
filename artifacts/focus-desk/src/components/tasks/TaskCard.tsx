@@ -23,6 +23,7 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
   const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [checked, setChecked] = useState(task.completed);
+  const [showNotePreview, setShowNotePreview] = useState(false);
 
   const attachedNotes = notes.filter(n => task.noteIds?.includes(n.id));
 
@@ -192,15 +193,45 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
               </span>
             )}
 
-            {/* Attached notes count */}
+            {/* Attached notes count - clickable to preview */}
             {attachedNotes.length > 0 && (
-              <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
+              <button
+                onClick={() => setShowNotePreview(!showNotePreview)}
+                className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium hover:underline transition-all"
+              >
                 <FileText className="h-3 w-3" />
                 {attachedNotes.length} note{attachedNotes.length !== 1 ? 's' : ''}
-              </span>
+              </button>
             )}
           </div>
         </div>
+
+        {/* Note previews section */}
+        <AnimatePresence>
+          {showNotePreview && attachedNotes.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-3 pt-3 border-t border-border/50 space-y-2"
+            >
+              {attachedNotes.map(note => (
+                <div
+                  key={note.id}
+                  className="p-2 rounded-lg bg-muted/50 text-xs leading-relaxed"
+                >
+                  {note.title && (
+                    <p className="font-semibold text-primary mb-1">{note.title}</p>
+                  )}
+                  <p className="text-muted-foreground line-clamp-3 whitespace-pre-wrap">
+                    {note.body}
+                  </p>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <AnimatePresence>
