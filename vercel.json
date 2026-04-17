@@ -1,5 +1,6 @@
 {
-  "buildCommand": "pnpm run build",
-  "outputDirectory": "./artifacts/focus-desk/dist",
-  "installCommand": "pnpm install"
+  "buildCommand": "cd artifacts/focus-desk && pnpm run build",
+  "outputDirectory": "artifacts/focus-desk/dist",
+  "installCommand": "pnpm install",
+  "framework": "vite"
 }
