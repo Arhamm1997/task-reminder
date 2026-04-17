@@ -1,6 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @workspace/focus-desk run build && rm -rf public && cp -r artifacts/focus-desk/dist/public ./public",
+  "buildCommand": "pnpm --filter @workspace/focus-desk run build && REPO=$(git rev-parse --show-toplevel) && cp -r $REPO/artifacts/focus-desk/dist/public $REPO/public",
   "outputDirectory": "public",
-  "installCommand": "pnpm install",
-  "framework": null
+  "installCommand": "pnpm install"
 }
