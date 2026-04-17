@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "./artifacts/focus-desk/dist",
+  "installCommand": "pnpm install",
+  "projectSettings": {
+    "nodeVersion": "18.x"
+  }
+}
