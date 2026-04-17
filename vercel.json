@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm --filter @workspace/focus-desk run build",
-  "outputDirectory": "artifacts/focus-desk/dist/public",
+  "buildCommand": "pnpm --filter @workspace/focus-desk run build && rm -rf public && cp -r artifacts/focus-desk/dist/public ./public",
+  "outputDirectory": "public",
   "installCommand": "pnpm install",
-  "framework": "vite"
+  "framework": null
 }
