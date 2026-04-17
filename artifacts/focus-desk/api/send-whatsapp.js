@@ -11,8 +11,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  res.json({ ok: true, message: "Message queued" });
-
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(apikey)}`;
-  fetch(url).catch(() => {});
+
+  try {
+    await fetch(url);
+  } catch (_) {
+    // CallMeBot failed but we still return ok to the client
+  }
+
+  res.json({ ok: true, message: "Message sent" });
 }
