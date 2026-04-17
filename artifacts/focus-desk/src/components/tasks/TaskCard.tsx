@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, Bell, Tag, AlertCircle, Check } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, Bell, Tag, AlertCircle, Check, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatDate, isOverdue } from '@/lib/utils';
 import { PRIORITY_COLORS, CATEGORY_LABELS } from '@/lib/constants';
 import { useTaskStore } from '@/store/taskStore';
+import { useNoteStore } from '@/store/noteStore';
 import { useToast } from '@/hooks/use-toast';
 import type { Task } from '@/types';
 import { TaskForm } from './TaskForm';
@@ -18,9 +19,12 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onDelete }: TaskCardProps) {
   const { toggleComplete } = useTaskStore();
+  const notes = useNoteStore(s => s.notes);
   const { toast } = useToast();
   const [editOpen, setEditOpen] = useState(false);
   const [checked, setChecked] = useState(task.completed);
+
+  const attachedNotes = notes.filter(n => task.noteIds?.includes(n.id));
 
   const overdue = isOverdue(task.dueDate, task.completed);
 
@@ -185,6 +189,14 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
               )}>
                 <Bell className="h-3 w-3" />
                 {task.reminderSent ? 'Message sent' : 'Reminder set'}
+              </span>
+            )}
+
+            {/* Attached notes count */}
+            {attachedNotes.length > 0 && (
+              <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                <FileText className="h-3 w-3" />
+                {attachedNotes.length} note{attachedNotes.length !== 1 ? 's' : ''}
               </span>
             )}
           </div>

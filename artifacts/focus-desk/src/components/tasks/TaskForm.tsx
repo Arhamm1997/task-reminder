@@ -2,8 +2,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
-import { X, MessageCircle, AlertCircle } from 'lucide-react';
+import { X, MessageCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { Link } from 'wouter';
+import { useState } from 'react';
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
@@ -14,6 +15,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useTaskStore } from '@/store/taskStore';
+import { useNoteStore } from '@/store/noteStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useToast } from '@/hooks/use-toast';
 import type { Task } from '@/types';
@@ -38,8 +40,11 @@ interface TaskFormProps {
 
 export function TaskForm({ task, onClose }: TaskFormProps) {
   const { addTask, updateTask } = useTaskStore();
+  const notes = useNoteStore(s => s.notes);
   const isWhatsAppConfigured = useSettingsStore(s => s.isConfigured)();
   const { toast } = useToast();
+  const [attachedNoteIds, setAttachedNoteIds] = useState<string[]>(task?.noteIds ?? []);
+  const [selectedNoteId, setSelectedNoteId] = useState('');
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -58,15 +63,30 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
     if (task) {
       updateTask(task.id, {
         ...data,
+        noteIds: attachedNoteIds,
         reminderSent: data.reminderTime !== task.reminderTime ? false : task.reminderSent,
       });
       toast({ title: 'Task updated' });
     } else {
-      addTask({ ...data, completed: false, reminderSent: false });
+      addTask({ ...data, completed: false, reminderSent: false, noteIds: attachedNoteIds });
       toast({ title: 'Task created' });
     }
     onClose();
   };
+
+  const attachNote = () => {
+    if (selectedNoteId && !attachedNoteIds.includes(selectedNoteId)) {
+      setAttachedNoteIds([...attachedNoteIds, selectedNoteId]);
+      setSelectedNoteId('');
+    }
+  };
+
+  const detachNote = (noteId: string) => {
+    setAttachedNoteIds(attachedNoteIds.filter(id => id !== noteId));
+  };
+
+  const attachedNotes = notes.filter(n => attachedNoteIds.includes(n.id));
+  const availableNotes = notes.filter(n => !attachedNoteIds.includes(n.id));
 
   return (
     <motion.div
@@ -242,7 +262,65 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
               )}
             />
 
-            <div className="flex justify-end gap-2 pt-1">
+            {/* Attached Notes */}
+            <div className="pt-4 border-t border-border">
+              <label className="text-sm font-medium mb-2 block">Attached Notes</label>
+
+              {/* Attached notes list */}
+              {attachedNotes.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {attachedNotes.map(note => (
+                    <div
+                      key={note.id}
+                      className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-xs"
+                    >
+                      <span className="truncate">
+                        {note.title || note.body.substring(0, 30)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => detachNote(note.id)}
+                        className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Attach note dropdown */}
+              {availableNotes.length > 0 && (
+                <div className="flex gap-2">
+                  <Select value={selectedNoteId} onValueChange={setSelectedNoteId}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Select a note to attach..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableNotes.map(note => (
+                        <SelectItem key={note.id} value={note.id}>
+                          {note.title || note.body.substring(0, 40)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={attachNote}
+                    disabled={!selectedNoteId}
+                    className="h-8 text-xs px-2"
+                  >
+                    Attach
+                  </Button>
+                </div>
+              )}
+
+              {notes.length === 0 && (
+                <p className="text-xs text-muted-foreground">No notes created yet</p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
                 variant="ghost"

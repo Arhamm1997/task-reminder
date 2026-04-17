@@ -19,6 +19,7 @@ const SEED_TASKS: Task[] = [
     reminderSent: true,
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     order: 0,
+    noteIds: [],
   },
   {
     id: 'seed-task-2',
@@ -33,6 +34,7 @@ const SEED_TASKS: Task[] = [
     reminderSent: false,
     createdAt: new Date(Date.now() - 3600000).toISOString(),
     order: 1,
+    noteIds: [],
   },
   {
     id: 'seed-task-3',
@@ -45,6 +47,7 @@ const SEED_TASKS: Task[] = [
     reminderSent: false,
     createdAt: new Date().toISOString(),
     order: 2,
+    noteIds: [],
   },
 ];
 

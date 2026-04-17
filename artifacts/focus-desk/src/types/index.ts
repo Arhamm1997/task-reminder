@@ -17,6 +17,7 @@ export interface Task {
   completedAt?: string;
   createdAt: string;
   order: number;
+  noteIds?: string[];
 }
 
 export interface Note {
