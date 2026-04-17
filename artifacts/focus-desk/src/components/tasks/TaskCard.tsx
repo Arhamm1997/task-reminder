@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, Bell, Tag, AlertCircle } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, Bell, Tag, AlertCircle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, formatDate, isOverdue } from '@/lib/utils';
 import { PRIORITY_COLORS, CATEGORY_LABELS } from '@/lib/constants';
@@ -120,7 +120,17 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
             >
               {task.title}
             </p>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {!task.completed && (
+                <button
+                  data-testid={`task-done-${task.id}`}
+                  onClick={handleToggle}
+                  className="p-1 rounded-md text-green-600 hover:bg-green-600/10 transition-colors"
+                  title="Mark as done"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+              )}
               <button
                 data-testid={`task-edit-${task.id}`}
                 onClick={() => setEditOpen(true)}
@@ -169,9 +179,12 @@ export function TaskCard({ task, onDelete }: TaskCardProps) {
 
             {/* Reminder */}
             {task.reminderTime && (
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span className={cn(
+                'flex items-center gap-1 text-xs',
+                task.reminderSent ? 'text-green-600 dark:text-green-400 font-medium' : 'text-muted-foreground'
+              )}>
                 <Bell className="h-3 w-3" />
-                Reminder set
+                {task.reminderSent ? 'Message sent' : 'Reminder set'}
               </span>
             )}
           </div>

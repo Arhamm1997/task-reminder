@@ -9,9 +9,7 @@ import { Input } from '@/components/ui/input';
 export default function Notes() {
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
-  const getFilteredNotes = useNoteStore(s => s.getFilteredNotes);
-
-  const notes = getFilteredNotes(search);
+  const notes = useNoteStore(state => state.getFilteredNotes(search));
 
   return (
     <div className="p-6 max-w-5xl mx-auto">

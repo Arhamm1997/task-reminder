@@ -6,7 +6,8 @@ import { Link } from 'wouter';
 import { AnimatePresence } from 'framer-motion';
 import { useTaskStore } from '@/store/taskStore';
 import { useNoteStore } from '@/store/noteStore';
-import { getGreeting, isDueToday, isOverdue } from '@/lib/utils';
+import { getGreeting, isDueToday, isOverdue, cn } from '@/lib/utils';
+import { NOTE_COLORS } from '@/lib/constants';
 import { TaskCard } from '@/components/tasks/TaskCard';
 import { TaskForm } from '@/components/tasks/TaskForm';
 import { NoteForm } from '@/components/notes/NoteForm';
@@ -23,8 +24,11 @@ const item = {
 export default function Dashboard() {
   const tasks = useTaskStore(s => s.tasks);
   const notes = useNoteStore(s => s.notes);
+  const { updateNote } = useNoteStore();
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [noteFormOpen, setNoteFormOpen] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
 
   const todayTasks = tasks.filter(t => !t.completed && isDueToday(t.dueDate));
   const completedToday = tasks.filter(t => t.completed && t.completedAt && isDueToday(t.completedAt));
@@ -141,19 +145,65 @@ export default function Dashboard() {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {notes.slice(0, 4).map(note => (
-            <Link key={note.id} href="/notes">
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                className="bg-card border border-border rounded-xl p-4 cursor-pointer hover:shadow-sm transition-all"
-              >
-                {note.title && <p className="text-sm font-semibold mb-1">{note.title}</p>}
-                <p className="note-font text-sm text-muted-foreground leading-relaxed line-clamp-3">
-                  {note.body}
-                </p>
-              </motion.div>
-            </Link>
-          ))}
+          {notes.slice(0, 4).map(note => {
+            const colorConfig = NOTE_COLORS[note.color];
+            const isEditing = editingNoteId === note.id;
+            return (
+              <div key={note.id}>
+                <motion.div
+                  whileHover={!isEditing ? { scale: 1.01 } : undefined}
+                  className={cn(
+                    'rounded-xl p-4 hover:shadow-sm transition-all border',
+                    !isEditing && 'cursor-pointer',
+                    colorConfig.bg,
+                    colorConfig.border
+                  )}
+                  onClick={() => {
+                    if (!isEditing) {
+                      setEditingNoteId(note.id);
+                      setEditingTitle(note.title || '');
+                    }
+                  }}
+                >
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input
+                        autoFocus
+                        type="text"
+                        value={editingTitle}
+                        onChange={e => setEditingTitle(e.target.value)}
+                        className="w-full bg-transparent text-sm font-semibold outline-none border-b px-0 pb-1"
+                        placeholder="Note title..."
+                      />
+                      <textarea
+                        value={note.body}
+                        onChange={e => updateNote(note.id, { body: e.target.value })}
+                        className="w-full bg-transparent text-sm outline-none resize-none note-font"
+                        rows={5}
+                        placeholder="Note content..."
+                      />
+                      <button
+                        onClick={() => {
+                          updateNote(note.id, { title: editingTitle || undefined });
+                          setEditingNoteId(null);
+                        }}
+                        className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded hover:bg-primary/90 transition-colors"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {note.title && <p className="text-sm font-semibold mb-1">{note.title}</p>}
+                      <p className="note-font text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                        {note.body}
+                      </p>
+                    </>
+                  )}
+                </motion.div>
+              </div>
+            );
+          })}
           {notes.length === 0 && (
             <div className="py-8 text-center rounded-xl border border-dashed border-border col-span-2">
               <p className="text-muted-foreground text-sm">No notes yet. Create your first one!</p>

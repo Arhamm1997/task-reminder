@@ -39,6 +39,11 @@ export function NoteCard({ note }: NoteCardProps) {
     toast({ title: 'Note deleted' });
   };
 
+  const handleTogglePin = () => {
+    togglePin(note.id);
+    toast({ title: note.pinned ? 'Note unpinned' : 'Note pinned' });
+  };
+
   return (
     <motion.div
       layout
@@ -46,7 +51,6 @@ export function NoteCard({ note }: NoteCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, height: 0 }}
       transition={{ duration: 0.2 }}
-      onDoubleClick={() => !editing && setEditing(true)}
       data-testid={`note-card-${note.id}`}
       className={cn(
         'group relative rounded-xl border p-4 cursor-pointer transition-all duration-200',
@@ -56,7 +60,7 @@ export function NoteCard({ note }: NoteCardProps) {
       )}
     >
       {/* Note actions */}
-      <div className="absolute top-2.5 right-2.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2.5 right-2.5 flex items-center gap-1 opacity-100 z-10 pointer-events-auto">
         {editing ? (
           <motion.button
             whileTap={{ scale: 0.9 }}
@@ -68,17 +72,26 @@ export function NoteCard({ note }: NoteCardProps) {
           </motion.button>
         ) : (
           <>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               data-testid={`note-pin-${note.id}`}
-              onClick={() => togglePin(note.id)}
+              onClick={handleTogglePin}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              title={note.pinned ? "Unpin" : "Pin"}
             >
-              {note.pinned ? (
-                <PinOff className="h-3.5 w-3.5 text-primary" />
-              ) : (
-                <Pin className="h-3.5 w-3.5" />
-              )}
-            </button>
+              <motion.div
+                key={note.pinned ? "pinned" : "unpinned"}
+                initial={{ rotate: -180, scale: 0.8 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ duration: 0.25 }}
+              >
+                {note.pinned ? (
+                  <PinOff className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <Pin className="h-3.5 w-3.5" />
+                )}
+              </motion.div>
+            </motion.button>
             <button
               data-testid={`note-delete-${note.id}`}
               onClick={handleDelete}
@@ -97,38 +110,53 @@ export function NoteCard({ note }: NoteCardProps) {
         </div>
       )}
 
-      <div className={cn('space-y-2', note.pinned && 'mt-2')}>
+      <div
+        className={cn('space-y-2', note.pinned && 'mt-2')}
+        onClick={(e) => {
+          if (!editing && e.target === e.currentTarget) {
+            setEditing(true);
+          }
+        }}
+      >
         {editing ? (
-          <input
-            data-testid={`note-title-edit-${note.id}`}
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Title (optional)"
-            className="w-full bg-transparent text-sm font-semibold outline-none placeholder:text-muted-foreground/60 pr-16"
-          />
+          <div className="space-y-2">
+            <input
+              data-testid={`note-title-edit-${note.id}`}
+              autoFocus
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="Title (optional)"
+              className="w-full bg-transparent text-sm font-semibold outline-none placeholder:text-muted-foreground/60 border-b border-muted-foreground/20 pb-1"
+            />
+            <textarea
+              ref={bodyRef}
+              data-testid={`note-body-edit-${note.id}`}
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              rows={8}
+              className="note-font w-full bg-transparent text-sm outline-none resize-none placeholder:text-muted-foreground/60 leading-relaxed"
+              placeholder="Write your note..."
+            />
+            <button
+              onClick={handleSave}
+              className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90 transition-colors font-medium"
+            >
+              Save
+            </button>
+          </div>
         ) : (
-          title && (
-            <p className="text-sm font-semibold leading-tight pr-16">{title}</p>
-          )
-        )}
-
-        {editing ? (
-          <textarea
-            ref={bodyRef}
-            data-testid={`note-body-edit-${note.id}`}
-            value={body}
-            onChange={e => setBody(e.target.value)}
-            onBlur={handleSave}
-            rows={5}
-            className="note-font w-full bg-transparent text-sm outline-none resize-none placeholder:text-muted-foreground/60 leading-relaxed"
-            placeholder="Write your note..."
-          />
-        ) : (
-          <p className="note-font text-sm leading-relaxed whitespace-pre-wrap line-clamp-[10]">
-            {note.body || (
-              <span className="text-muted-foreground/60 italic">Empty note — double click to edit</span>
+          <div onClick={() => setEditing(true)} className="cursor-pointer">
+            {title && (
+              <p className="text-sm font-semibold leading-tight mb-1 hover:bg-black/5 dark:hover:bg-white/5 px-1 py-0.5 rounded transition-colors">
+                {title}
+              </p>
             )}
-          </p>
+            <p className="note-font text-sm leading-relaxed whitespace-pre-wrap line-clamp-[10] hover:bg-black/5 dark:hover:bg-white/5 px-1 py-0.5 rounded transition-colors">
+              {note.body || (
+                <span className="text-muted-foreground/60 italic">Empty note — click to edit</span>
+              )}
+            </p>
+          </div>
         )}
       </div>
 
