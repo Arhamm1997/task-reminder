@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm --filter @workspace/focus-desk run build && REPO=$(git rev-parse --show-toplevel) && rm -rf $REPO/public && cp -r $REPO/artifacts/focus-desk/dist/public $REPO/public",
-  "outputDirectory": "public",
+  "buildCommand": "pnpm --filter @workspace/focus-desk run build",
+  "outputDirectory": "artifacts/focus-desk/dist",
   "installCommand": "pnpm install",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
