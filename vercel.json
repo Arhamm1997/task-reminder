@@ -1,7 +1,4 @@
 {
-  "buildCommand": "pnpm --filter @workspace/focus-desk run build",
-  "outputDirectory": "artifacts/focus-desk/dist",
-  "installCommand": "pnpm install",
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
